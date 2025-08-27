@@ -1,0 +1,55 @@
+
+ScreenManager:
+    LoginScreen:
+    ChatScreen:
+
+<LoginScreen>:
+    name: "login"
+    BoxLayout:
+        orientation: "vertical"; padding: 20; spacing: 10
+        TextInput:
+            id: server
+            hint_text: "Base URL (https://xxxxx.ngrok.app)"
+            text: ""
+            size_hint_y: None
+            height: "44dp"
+        TextInput:
+            id: username
+            hint_text: "Usuario"
+            size_hint_y: None
+            height: "44dp"
+        TextInput:
+            id: password
+            hint_text: "Contraseña"
+            password: True
+            size_hint_y: None
+            height: "44dp"
+        TextInput:
+            id: peer
+            hint_text: "Chatear con (username)"
+            size_hint_y: None
+            height: "44dp"
+        Button:
+            text: "Entrar"
+            size_hint_y: None
+            height: "48dp"
+            on_release: app.do_login(server.text, username.text, password.text, peer.text)
+
+<ChatScreen>:
+    name: "chat"
+    BoxLayout:
+        orientation: "vertical"
+        ScrollView:
+            Label:
+                id: chatlog
+                size_hint_y: None
+                text_size: self.width, None
+                height: self.texture_size[1]
+        BoxLayout:
+            size_hint_y: None; height: "52dp"; spacing: 6; padding: 6
+            TextInput:
+                id: msg
+                hint_text: "Escribe..."
+            Button:
+                text: "Enviar"
+                on_release: app.send_msg(msg.text); msg.text=""

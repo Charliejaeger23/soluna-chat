@@ -1,0 +1,32 @@
+
+name: client-ci
+on:
+  push:
+    paths:
+      - 'client_kivy/**'
+      - '.github/workflows/client_ci.yml'
+  pull_request:
+    paths:
+      - 'client_kivy/**'
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client_kivy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -U pip
+      - run: pip install -r requirements.txt
+      - name: Check imports
+        run: python -m pyflakes .
+      - name: Package sources
+        run: zip -r client_sources.zip .
+        if: always()
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client_sources
+          path: client_kivy/client_sources.zip
