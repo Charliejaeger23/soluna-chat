@@ -1,5 +1,5 @@
 
-from fastapi import Depends, HTTPException, WebSocket
+from fastapi import Depends, HTTPException, WebSocket, Header
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -39,8 +39,11 @@ def decode_token(token: str):
     except JWTError:
         raise HTTPException(401, "Invalid token")
 
-def get_current_user_http(authorization: Optional[str] = None, session: Session = Depends(get_session)) -> User:
-    if not authorization or not authorization.startswith("Bearer "):
+def get_current_user_http(
+    authorization:str = Header(default=None), 
+    session: Session = Depends(get_session)
+) -> User:
+       if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "Not authenticated")
     token = authorization.replace("Bearer ", "")
     payload = decode_token(token)
