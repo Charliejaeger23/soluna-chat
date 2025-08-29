@@ -1,4 +1,3 @@
-
 from fastapi import Depends, HTTPException, WebSocket, Header
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -12,38 +11,48 @@ from db import get_session
 from models import User
 
 load_dotenv()
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 class Settings(BaseSettings):
     JWT_SECRET: str = "changeme_supersecret"
-    JWT_EXPIRE_MIN: int = 60 * 24 * 7
+    JWT_EXPIRE_MIN: int = 60 * 24 * 7  # 7 días
     ALLOWED_ORIGINS: str = "*"
+
 
 settings = Settings()
 
-def verify_password(plain, hashed):
+
+def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
-def hash_password(p):
+
+def hash_password(p: str) -> str:
     return pwd_context.hash(p)
 
-def create_access_token(data: dict, expires_minutes: Optional[int] = None):
+
+def create_access_token(data: dict, expires_minutes: Optional[int] = None) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=expires_minutes or settings.JWT_EXPIRE_MIN)
+    expire = datetime.utcnow() + timedelta(
+        minutes=expires_minutes or settings.JWT_EXPIRE_MIN
+    )
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.JWT_SECRET, algorithm="HS256")
 
-def decode_token(token: str):
+
+def decode_token(token: str) -> dict:
     try:
         return jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
     except JWTError:
         raise HTTPException(401, "Invalid token")
 
+
 def get_current_user_http(
-    authorization:str = Header(default=None), 
-    session: Session = Depends(get_session)
+    authorization: Optional[str] = Header(default=None),
+    session: Session = Depends(get_session),
 ) -> User:
-       if not authorization or not authorization.startswith("Bearer "):
+    if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "Not authenticated")
     token = authorization.replace("Bearer ", "")
     payload = decode_token(token)
@@ -53,7 +62,10 @@ def get_current_user_http(
         raise HTTPException(401, "User not found")
     return user
 
-async def get_current_user_ws(websocket: WebSocket, session: Session = Depends(get_session)) -> User:
+
+async def get_current_user_ws(
+    websocket: WebSocket, session: Session = Depends(get_session)
+) -> User:
     token = websocket.query_params.get("token")
     if not token:
         await websocket.close(code=4401)
