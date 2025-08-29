@@ -24,5 +24,6 @@ jobs:
       - name: Run tests
         run: pytest -q
         env:
+          PYTHONPATH: .
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           ALLOWED_ORIGINS: '*'
